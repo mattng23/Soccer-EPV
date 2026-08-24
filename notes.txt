@@ -1,0 +1,9 @@
+In this project, I am wanting to create a metric similar to VAEP. 
+
+However, there are limitations on VAEP that I don't like.
+-Takes into account only previous 3 actions
+-VAEP uses the probabilty of scoring in the next 10 actions. I however am going to use probabilty of scoring over the remainder of the possession. 
+
+The question I am trying to answer is this
+
+How much did this player’s action improve or worsen the team’s expected goal-scoring opportunity?
