@@ -4,6 +4,23 @@ However, there are limitations on VAEP that I don't like.
 -Takes into account only previous 3 actions
 -VAEP uses the probabilty of scoring in the next 10 actions. I however am going to use probabilty of scoring over the remainder of the possession. 
 
-The question I am trying to answer is this
+We’re trying to build a metric that estimates how much attacking value each soccer player creates with their actions.
 
-How much did this player’s action improve or worsen the team’s expected goal-scoring opportunity?
+The key idea is that a player should get credit for making the team’s attacking situation more dangerous, 
+even if the possession does not end in a goal or even a shot. For example, if Messi beats several defenders and squares the ball to a striker in front of goal, Messi should still receive a large positive value even if the striker completely wastes the chance.
+
+To do this, we want to estimate the value of a game state:
+
+V(s)=expected attacking value of the current situation
+
+Then we compare the state before and after a player’s action:
+
+Action Value= V(safter​)−V(sbefore​)
+
+So actions like progressive passes, dribbles, carries,
+and dangerous receptions can receive positive value if they move the team into a more threatening situation.
+
+The StatsBomb event data gives us the sequence of actions, who performed them, 
+where they started and ended, and what eventually happened. We’ll use many possessions to learn what kinds of situations 
+typically lead to high-quality scoring opportunities. 
+Once the model can estimate V(s), we can assign value to individual actions and then aggregate those action values to evaluate how much attacking value each player contributes overall.
