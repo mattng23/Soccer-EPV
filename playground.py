@@ -74,8 +74,8 @@ for col in end_location_cols:
 
 # No end location for this type -> nothing moved
 
-df["end_x"] = end_x.fillna(df["x"])
-df["end_y"] = end_y.fillna(df["y"])
+df["end_x"] = end_x.fillna(df["x"]).astype(float)
+df["end_y"] = end_y.fillna(df["y"]).astype(float)
 
 
 # Shot -> reward = StatsBomb xG
