@@ -2,6 +2,7 @@
 
 import json
 import pandas as pd
+import numpy as np
 
 with open("Single Match Data.json", "r", encoding="utf-8") as f:
     data = json.load(f)
@@ -21,23 +22,6 @@ df["x"] = df["location"].apply(
 df["y"] = df["location"].apply(
     lambda loc: loc[1] if isinstance(loc, list) else None
 )
-
-# These are the columns we want
-
-cols = [
-    "index",
-    "possession",
-    "possession_team.name",
-    "team.name",
-    "minute",
-    "second",
-    "player.name",
-    "type.name",
-    "x",
-    "y",
-    "shot.statsbomb_xg",
-    "shot.outcome.name"
-]
 
 # Take out useless values
 
@@ -81,16 +65,17 @@ end_location_cols = [
     "goalkeeper.end_location"
 ]
 
-def get_end_xy(row):
-    for col in end_location_cols:
-        val = row[col]
-        if isinstance(val, list):
-            return val[0], val[1]  # only x, y - shots can carry a 3rd value (height)
-    return row["x"], row["y"]  # no end location for this type -> nothing moved
+end_x = pd.Series(np.nan, index=df.index)
+end_y = pd.Series(np.nan, index=df.index)
 
-end_xy = df.apply(get_end_xy, axis=1, result_type="expand")
-df["end_x"] = end_xy[0]
-df["end_y"] = end_xy[1]
+for col in end_location_cols:
+    end_x = end_x.fillna(df[col].str[0])
+    end_y = end_y.fillna(df[col].str[1])
+
+# No end location for this type -> nothing moved
+
+df["end_x"] = end_x.fillna(df["x"])
+df["end_y"] = end_y.fillna(df["y"])
 
 
 # Shot -> reward = StatsBomb xG
@@ -124,3 +109,34 @@ df["future_xg"] = (
         lambda s: s.iloc[::-1].cumsum().iloc[::-1]
     )
 )
+
+
+df["distance_to_goal"] = np.sqrt(
+    (120 - df["x"])**2 +
+    (40 - df["y"])**2
+)
+
+df["end_distance_to_goal"] = np.sqrt(
+    (120 - df["end_x"])**2 +
+    (40 - df["end_y"])**2
+)
+
+# Approximate goalposts in StatsBomb coordinates:
+# (120, 36) and (120, 44)
+# Calculate angle to goal - vectorized, no row-wise apply needed
+# since arithmetic + np.arctan2 already work on whole Series at once
+
+def goal_angle(x, y):
+    v1_x = 120 - x
+    v1_y = 36 - y
+
+    v2_x = 120 - x
+    v2_y = 44 - y
+
+    cross = np.abs(v1_x * v2_y - v1_y * v2_x)
+    dot = v1_x * v2_x + v1_y * v2_y
+
+    return np.arctan2(cross, dot)
+
+df["goal_angle"] = goal_angle(df["x"], df["y"])
+df["end_goal_angle"] = goal_angle(df["end_x"], df["end_y"])
