@@ -7,6 +7,7 @@
 import json
 import pandas as pd
 import numpy as np
+import os
 
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import train_test_split
@@ -230,23 +231,53 @@ def prepare_match(data, match_id):
     return df
 
 
-# LOAD CURRENT MATCH
+# LOAD AND PREPARE ALL MATCHES
 
-with open(
-    "Single Match Data.json", 
-    "r",
-    encoding="utf-8"
-) as f:
+EVENTS_DIR = "data/raw/events/laliga_2015_16"
 
-    data = json.load(f)
+all_matches = []
+
+for filename in sorted(os.listdir(EVENTS_DIR)):
+
+    # Only load JSON files
+    if not filename.endswith(".json"):
+        continue
+
+    # Example:
+    # 3773369.json -> match_id = 3773369
+    match_id = filename.replace(".json", "")
+
+    file_path = os.path.join(
+        EVENTS_DIR,
+        filename
+    )
+
+    # Load raw StatsBomb events
+    with open(file_path, "r", encoding="utf-8") as f:
+        match_data = json.load(f)
+
+    # Run the same preprocessing on this match
+    match_df = prepare_match(
+        match_data,
+        match_id=match_id
+    )
+
+    all_matches.append(match_df)
 
 
-# Run all preprocessing above on this match
-
-df = prepare_match(
-    data,
-    match_id="match_1"
+# Combine all matches into one dataframe
+df = pd.concat(
+    all_matches,
+    ignore_index=True
 )
+
+
+# Check that everything loaded correctly
+print("Matches loaded:", df["match_id"].nunique())
+print("Total events:", len(df))
+print(
+    "Total possessions:",
+    df.groupby(["match_id", "possession"]).ngroups)
 
 
 # FEATURE ENGINEERING FOR V(s)
