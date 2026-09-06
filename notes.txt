@@ -25,6 +25,16 @@ where they started and ended, and what eventually happened. We’ll use many pos
 typically lead to high-quality scoring opportunities. 
 Once the model can estimate V(s), we can assign value to individual actions and then aggregate those action values to evaluate how much attacking value each player contributes overall.
 
-Data came from Statsbomb
+The raw event data comes from the Hudl/StatsBomb Open Data repository:
 
-Link: https://github.com/hudl/open-data/tree/master/data/events
+https://github.com/hudl/open-data/tree/master/data/events
+
+To download the La Liga 2015/16 data used in this project, run:
+
+python download_data.py
+
+This will download 380 match event files to:
+
+data/raw/events/laliga_2015_16/
+
+The raw data is stored locally and is not included in this GitHub repository.
