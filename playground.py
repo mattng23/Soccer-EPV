@@ -1,6 +1,8 @@
-# ===============================================================
+# Data came from Statsbomb
+
+# Link: https://github.com/hudl/open-data/tree/master/data/events
+
 # LIBRARIES
-# ===============================================================
 
 import json
 import pandas as pd
@@ -192,7 +194,7 @@ def prepare_match(data, match_id):
 
     df["future_xg"] = (
         df.groupby(
-            ["possession", "possession_team.name"]
+            ["match_id","possession", "possession_team.name"]
         )["reward"]
         .transform(
             lambda s:
@@ -231,7 +233,7 @@ def prepare_match(data, match_id):
 # LOAD CURRENT MATCH
 
 with open(
-    "Single Match Data.json",
+    "Single Match Data.json", 
     "r",
     encoding="utf-8"
 ) as f:

@@ -24,3 +24,7 @@ The StatsBomb event data gives us the sequence of actions, who performed them,
 where they started and ended, and what eventually happened. We’ll use many possessions to learn what kinds of situations 
 typically lead to high-quality scoring opportunities. 
 Once the model can estimate V(s), we can assign value to individual actions and then aggregate those action values to evaluate how much attacking value each player contributes overall.
+
+Data came from Statsbomb
+
+Link: https://github.com/hudl/open-data/tree/master/data/events
