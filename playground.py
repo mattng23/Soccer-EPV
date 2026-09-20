@@ -233,7 +233,16 @@ def prepare_match(data, match_id):
 
 # LOAD AND PREPARE ALL MATCHES
 
-EVENTS_DIR = "data/raw/events/laliga_2015_16"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+EVENTS_DIR = os.path.join(
+    BASE_DIR,
+    "data",
+    "raw",
+    "events",
+    "laliga_2015_16"
+)
+
 
 all_matches = []
 
@@ -365,8 +374,8 @@ y = (
 # Needed because we are splitting by possession rather than
 # randomly splitting individual rows.
 
-possession_id = (
-    df["possession"]
+match_id = (
+    df["match_id"]
     .reset_index(drop=True)
 )
 
@@ -382,36 +391,29 @@ print(
 )
 
 
-# TRAIN / TEST SPLIT
+# TRAIN / TEST SPLIT BY MATCH
 
-# IMPORTANT:
-# We split by POSSESSION, not by row.
+# Get each unique match
+unique_matches = match_id.unique()
 
-# Events from the same possession are highly related and often share nearly identical future_xg labels.
-
-# If we randomly split rows, events from one possession could appear in both train and test, creating leakage.
-
-# Once we have many matches, we will change this to split by MATCH instead.
-
-unique_poss = possession_id.unique()
-
-
-train_poss, test_poss = train_test_split(
-    unique_poss,
+# Split entire matches into training and testing sets
+train_matches, test_matches = train_test_split(
+    unique_matches,
     test_size=0.25,
     random_state=42
 )
 
-
-train_mask = possession_id.isin(
-    train_poss
+# Identify which rows belong to training matches
+train_mask = match_id.isin(
+    train_matches
 )
 
-test_mask = possession_id.isin(
-    test_poss
+# Identify which rows belong to test matches
+test_mask = match_id.isin(
+    test_matches
 )
 
-
+# Create training and test datasets
 X_train = X[train_mask]
 X_test = X[test_mask]
 
@@ -423,12 +425,12 @@ print()
 
 print(
     f"Train: {X_train.shape[0]} rows "
-    f"across {len(train_poss)} possessions"
+    f"across {len(train_matches)} matches"
 )
 
 print(
     f"Test: {X_test.shape[0]} rows "
-    f"across {len(test_poss)} possessions"
+    f"across {len(test_matches)} matches"
 )
 
 
@@ -439,10 +441,8 @@ print(
 # - heavily concentrated at zero
 
 # Poisson loss is a reasonable first model to experiment with.
-# It is NOT necessarily the final/best model.
-#
-# Once we have more data, we should compare different loss
-# functions and modeling approaches.
+
+# Once we have more data, we should compare different loss functions and modeling approaches.
 
 model = HistGradientBoostingRegressor(
     loss="poisson",
@@ -561,12 +561,16 @@ print(
 
 print(
     "Total possessions:",
-    df["possession"].nunique()
+    df.groupby(
+        ["match_id", "possession"]
+    ).ngroups
 )
 
 print(
     "Possessions producing xG:",
-    df.groupby("possession")["reward"]
+    df.groupby(
+        ["match_id", "possession"]
+    )["reward"]
       .sum()
       .gt(0)
       .sum()
