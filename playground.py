@@ -369,9 +369,9 @@ y = (
 )
 
 
-# Possession IDs
+# Match IDs
 
-# Needed because we are splitting by possession rather than
+# Needed because we are splitting by entire matches rather than
 # randomly splitting individual rows.
 
 match_id = (
